@@ -1,11 +1,13 @@
-addEventListener('fetch', event => {
-    event.respondWith(handleRequest(event.request));
-});
+export default {
+    async fetch(request, env) {
+        return handleRequest(request, env);
+    }
+};
 
-async function handleRequest(request) {
+async function handleRequest(request, env) {
     const url = new URL(request.url);
     const corsHeaders = {
-        'Access-Control-Allow-Origin': '*', // Or specify your Pages domain, e.g., 'https://ltm-world.pages.dev'
+        'Access-Control-Allow-Origin': 'https://ltm-world.pages.dev',
         'Access-Control-Allow-Methods': 'GET, POST',
         'Access-Control-Allow-Headers': 'Content-Type'
     };
