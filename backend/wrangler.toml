@@ -1,5 +1,5 @@
-name = "ltm-world-worker"
-main = "worker.js"  # Path relative to root
+name = "ltm-world"
+main = "worker.js"
 compatibility_date = "2025-04-10"
 
 [[d1_databases]]
