@@ -7,6 +7,7 @@ export default {
             'Access-Control-Allow-Headers': 'Content-Type'
         };
 
+        // Fetch projects for portfolio page
         if (url.pathname === '/api/projects') {
             try {
                 const { results } = await env.DB.prepare("SELECT * FROM projects").all();
@@ -19,6 +20,7 @@ export default {
             }
         }
 
+        // Handle contact form submissions
         if (request.method === 'POST' && url.pathname === '/contact') {
             const { name, email, message } = await request.json();
             try {
@@ -34,6 +36,25 @@ export default {
             }
         }
 
+        // Fetch contacts for admin page (with optional secret key)
+        if (url.pathname === '/api/contacts') {
+            const secret = url.searchParams.get('secret');
+            const validSecret = 'your-secret-key-here'; // Replace with a strong secret
+            if (secret !== validSecret) {
+                return new Response('Unauthorized', { headers: corsHeaders, status: 403 });
+            }
+            try {
+                const { results } = await env.DB.prepare("SELECT * FROM contacts").all();
+                return new Response(JSON.stringify(results), {
+                    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+                    status: 200
+                });
+            } catch (e) {
+                return new Response(`Error: ${e.message}`, { headers: corsHeaders, status: 500 });
+            }
+        }
+
+        // Default response for root or unmatched routes
         return new Response('Welcome to LTM-World', { headers: corsHeaders, status: 200 });
     }
 };
