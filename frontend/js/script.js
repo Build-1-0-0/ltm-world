@@ -1,4 +1,3 @@
-// Contact form
 document.getElementById('contact-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value;
@@ -15,7 +14,6 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
     document.getElementById('form-response').innerText = text;
 });
 
-// Load projects for portfolio
 async function loadProjects() {
     const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/projects');
     const projects = await response.json();
