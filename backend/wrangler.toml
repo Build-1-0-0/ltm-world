@@ -1,11 +1,14 @@
 name = "ltm-world"
-main = "worker.js"  # Explicitly specify the entry point
-compatibility_date = "2025-04-10"  # Use current date or later for latest features
+main = "worker.js"
+compatibility_date = "2025-04-10"
 
 [build]
-upload.format = "modules"  # Corrected from "module" to "modules" per Wrangler docs
+upload.format = "modules"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "ltm-world-db"
 database_id = "2ff0565d-85d4-4247-9060-1bad62918796"
+
+[observability.logs]
+enabled = true
