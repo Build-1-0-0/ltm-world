@@ -5,6 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LTM-World | Gospel Music Hub</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Fallback styles if css/style.css is missing or incomplete */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f4f4f4;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            text-decoration: none;
+            margin: 10px;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background: #555;
+        }
+        .project-preview {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .project-preview ul {
+            list-style: none;
+            padding: 0;
+        }
+        .project-preview li {
+            margin-bottom: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -25,9 +86,15 @@
             <a href="services.html" class="btn">Explore Services</a>
             <a href="community.html" class="btn">Join Our Community</a>
         </section>
+        <section class="project-preview">
+            <h2>Featured Projects</h2>
+            <ul class="project-list"></ul>
+            <a href="portfolio.html" class="btn">View All Projects</a>
+        </section>
     </main>
     <footer>
-        <p>&copy; 2025 LTM-World. All rights reserved.</p>
+        <p>© 2025 LTM-World. All rights reserved.</p>
     </footer>
+    <script src="js/script.js"></script>
 </body>
-      </html>
+</html>
