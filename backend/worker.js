@@ -3,11 +3,14 @@ export default {
         const url = new URL(request.url);
         const corsHeaders = {
             'Access-Control-Allow-Origin': 'https://ltm-world.pages.dev',
-            'Access-Control-Allow-Methods': 'GET, POST',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type'
         };
 
-        // Fetch projects for portfolio page
+        if (request.method === 'OPTIONS') {
+            return new Response(null, { headers: corsHeaders });
+        }
+
         if (url.pathname === '/api/projects') {
             try {
                 const { results } = await env.DB.prepare("SELECT * FROM projects").all();
@@ -20,7 +23,6 @@ export default {
             }
         }
 
-        // Handle contact form submissions
         if (request.method === 'POST' && url.pathname === '/contact') {
             const { name, email, message } = await request.json();
             try {
@@ -36,10 +38,9 @@ export default {
             }
         }
 
-        // Fetch contacts for admin page (with optional secret key)
         if (url.pathname === '/api/contacts') {
             const secret = url.searchParams.get('secret');
-            const validSecret = 'your-secret-key-here'; // Replace with a strong secret
+            const validSecret = '123456789'; // Replace with the same key as in script.js
             if (secret !== validSecret) {
                 return new Response('Unauthorized', { headers: corsHeaders, status: 403 });
             }
@@ -54,7 +55,6 @@ export default {
             }
         }
 
-        // Default response for root or unmatched routes
         return new Response('Welcome to LTM-World', { headers: corsHeaders, status: 200 });
     }
 };
