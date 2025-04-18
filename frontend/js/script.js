@@ -57,7 +57,7 @@ if (document.querySelector('.project-list')) {
 
 // Load contacts for admin.html
 async function loadContacts() {
-    const secret = 'your-api-secret-key'; // Replace with the same key as in worker.js
+    const secret = '123456789'; // Replace with the same key as in worker.js
     try {
         const response = await fetch(`https://ltm-world.africancontent807.workers.dev/api/contacts?secret=${secret}`);
         if (!response.ok) {
