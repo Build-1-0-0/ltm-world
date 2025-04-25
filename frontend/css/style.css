@@ -1,54 +1,103 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+    line-height: 1.6;
 }
 header {
-    background-color: #1e3a8a;
-    color: white;
+    background: #003087;
+    color: #fff;
+    padding: 10px 0;
     text-align: center;
-    padding: 1rem;
 }
 header h1 {
     margin: 0;
 }
-header p {
-    font-style: italic;
-}
 nav a {
-    color: white;
-    margin: 0 10px;
+    color: #fff;
+    margin: 0 15px;
     text-decoration: none;
 }
+nav a:hover {
+    text-decoration: underline;
+}
 main {
-    padding: 20px;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 20px auto;
+    padding: 0 20px;
+    min-height: calc(100vh - 150px);
 }
 .hero {
     text-align: center;
+    padding: 40px 20px;
+    background: #f4f4f4;
 }
 .btn {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #d97706;
-    color: white;
+    background: #003087;
+    color: #fff;
     text-decoration: none;
     margin: 10px;
+    border-radius: 5px;
+}
+.btn:hover {
+    background: #0055b3;
+}
+.project-list {
+    list-style: none;
+    padding: 0;
+}
+.project-list li {
+    margin-bottom: 10px;
 }
 form {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+input, textarea, select {
+    padding: 8px;
+    font-size: 16px;
+}
+button {
+    padding: 10px;
+    background: #003087;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    background: #0055b3;
+}
+#form-response, .error {
+    margin-top: 10px;
+    color: #333;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}
+.blog-post {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
 footer {
     text-align: center;
     padding: 10px;
-    background-color: #1e3a8a;
-    color: white;
-    position: fixed;
+    background: #003087;
+    color: #fff;
+    font-size: 14px;
+    position: relative;
     bottom: 0;
     width: 100%;
-  }
+}
