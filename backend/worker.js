@@ -195,7 +195,7 @@ export default {
                 if (!payload) {
                     return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
-                        status: 401
+                        status: (MouseEvent)401
                     });
                 }
                 try {
