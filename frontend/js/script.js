@@ -25,6 +25,7 @@ const registerForm = document.getElementById('register-form');
 if (localStorage.getItem('token')) {
     const token = localStorage.getItem('token');
     const payload = parseJwt(token);
+    console.log('Initial JWT payload:', payload); // Debug
     if (payload && payload.role === 'admin') {
         adminLinks.forEach(link => link.style.display = 'inline');
         if (authSection && adminContent) {
@@ -34,6 +35,7 @@ if (localStorage.getItem('token')) {
     }
     logoutLinks.forEach(link => link.style.display = 'inline');
     if (window.location.pathname === '/admin.html' && (!payload || payload.role !== 'admin')) {
+        console.log('Redirecting non-admin from admin.html to blog.html:', payload ? payload.email : 'no payload', 'Role:', payload ? payload.role : 'none');
         window.location.href = '/blog.html';
     }
 }
@@ -57,7 +59,9 @@ if (loginForm) {
             }
             localStorage.setItem('token', data.token);
             const payload = parseJwt(data.token);
-            if (payload.role === 'admin') {
+            console.log('Post-login JWT payload:', payload); // Debug
+            if (payload && payload.role === 'admin') {
+                console.log('Redirecting to admin.html for admin user:', email, 'Role:', payload.role);
                 adminLinks.forEach(link => link.style.display = 'inline');
                 if (authSection && adminContent) {
                     authSection.style.display = 'none';
@@ -67,6 +71,7 @@ if (loginForm) {
                 loadContacts();
                 window.location.href = '/admin.html';
             } else {
+                console.log('Redirecting to blog.html for non-admin user:', email, 'Role:', payload ? payload.role : 'no payload');
                 window.location.href = '/blog.html';
             }
         } catch (error) {
