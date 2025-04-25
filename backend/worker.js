@@ -66,12 +66,13 @@ export default {
                         status: 401
                     });
                 }
-                console.log('Generating JWT with role:', user.role);
-                const jwt = await new SignJWT({ email: user.email, role: user.role })
+                const payload = { email: user.email, role: user.role };
+                console.log('Generating JWT with payload:', payload);
+                const jwt = await new SignJWT(payload)
                     .setProtectedHeader({ alg: 'HS256' })
                     .setExpirationTime('1h')
                     .sign(new TextEncoder().encode(env.JWT_SECRET));
-                console.log('JWT generated:', { email: user.email, role: user.role });
+                console.log('JWT generated:', payload);
                 return new Response(JSON.stringify({ token: jwt }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 200
