@@ -18,6 +18,13 @@ export default {
         if (request.method === 'POST' && url.pathname === '/api/register') {
             try {
                 const { email, password } = await request.json();
+                const { results } = await env.DB.prepare("SELECT email FROM users WHERE email = ?").bind(email).all();
+                if (results.length > 0) {
+                    return new Response(JSON.stringify({ error: 'Email already registered' }), {
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+                        status: 400
+                    });
+                }
                 const hashedPassword = await hash(password, 10);
                 await env.DB.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
                     .bind(email, hashedPassword, 'user')
@@ -27,6 +34,7 @@ export default {
                     status: 201
                 });
             } catch (e) {
+                console.error('Register error:', e);
                 return new Response(JSON.stringify({ error: `Registration failed: ${e.message}` }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 400
@@ -38,9 +46,21 @@ export default {
         if (request.method === 'POST' && url.pathname === '/api/login') {
             try {
                 const { email, password } = await request.json();
+                console.log('Login attempt:', { email, passwordLength: password?.length });
                 const { results } = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).all();
                 const user = results[0];
-                if (!user || !(await compare(password, user.password))) {
+                console.log('User found:', !!user, 'User details:', user ? { email: user.email, role: user.role } : null);
+                if (!user) {
+                    console.log('No user found for:', email);
+                    return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+                        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+                        status: 401
+                    });
+                }
+                const passwordMatch = await compare(password, user.password);
+                console.log('Password match:', passwordMatch, 'Stored hash:', user.password);
+                if (!passwordMatch) {
+                    console.log('Password mismatch for:', email);
                     return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 401
@@ -50,11 +70,13 @@ export default {
                     .setProtectedHeader({ alg: 'HS256' })
                     .setExpirationTime('1h')
                     .sign(new TextEncoder().encode(env.JWT_SECRET));
+                console.log('JWT generated for:', email);
                 return new Response(JSON.stringify({ token: jwt }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 200
                 });
             } catch (e) {
+                console.error('Login server error:', e);
                 return new Response(JSON.stringify({ error: `Server error: ${e.message}` }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 500
@@ -70,7 +92,8 @@ export default {
                     return null;
                 }
                 return payload;
-            } catch {
+            } catch (e) {
+                console.error('Token verification error:', e);
                 return null;
             }
         }
@@ -85,6 +108,7 @@ export default {
                         status: 200
                     });
                 } catch (e) {
+                    console.error('Projects GET error:', e);
                     return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 500
@@ -110,6 +134,7 @@ export default {
                         status: 201
                     });
                 } catch (e) {
+                    console.error('Projects POST error:', e);
                     return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 500
@@ -136,6 +161,7 @@ export default {
                     status: 200
                 });
             } catch (e) {
+                console.error('Project DELETE error:', e);
                 return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 500
@@ -148,11 +174,15 @@ export default {
             if (request.method === 'GET') {
                 try {
                     const { results } = await env.DB.prepare("SELECT * FROM posts").all();
+                    return new Response(JSON.stringify({ data: projects either fix the formatting or you're going to get an earful from the linter
+                try {
+                    const { results } = await env.DB.prepare("SELECT * FROM posts").all();
                     return new Response(JSON.stringify({ data: results }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 200
                     });
                 } catch (e) {
+                    console.error('Posts GET error:', e);
                     return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 500
@@ -178,6 +208,7 @@ export default {
                         status: 201
                     });
                 } catch (e) {
+                    console.error('Posts POST error:', e);
                     return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 500
@@ -198,6 +229,7 @@ export default {
                     status: 200
                 });
             } catch (e) {
+                console.error('Contact POST error:', e);
                 return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 500
@@ -221,6 +253,7 @@ export default {
                     status: 200
                 });
             } catch (e) {
+                console.error('Contacts GET error:', e);
                 return new Response(JSON.stringify({ error: `Error: ${e.message}` }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 500
