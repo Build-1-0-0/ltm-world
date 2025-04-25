@@ -1,4 +1,4 @@
-// Decode JWT (simple base64 decode for client-side role check)
+// Decode JWT
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -8,6 +8,7 @@ function parseJwt(token) {
         }).join(''));
         return JSON.parse(jsonPayload);
     } catch (e) {
+        console.error('Error parsing JWT:', e);
         return null;
     }
 }
@@ -26,13 +27,12 @@ if (localStorage.getItem('token')) {
     const payload = parseJwt(token);
     if (payload && payload.role === 'admin') {
         adminLinks.forEach(link => link.style.display = 'inline');
+        if (authSection && adminContent) {
+            authSection.style.display = 'none';
+            adminContent.style.display = 'block';
+        }
     }
     logoutLinks.forEach(link => link.style.display = 'inline');
-    if (authSection && adminContent && payload?.role === 'admin') {
-        authSection.style.display = 'none';
-        adminContent.style.display = 'block';
-    }
-    // Redirect non-admins from admin.html
     if (window.location.pathname === '/admin.html' && (!payload || payload.role !== 'admin')) {
         window.location.href = '/blog.html';
     }
@@ -43,6 +43,7 @@ if (loginForm) {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        console.log('Login attempt (client):', { email, passwordLength: password.length }); // Debug
         try {
             const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/login', {
                 method: 'POST',
@@ -50,6 +51,7 @@ if (loginForm) {
                 body: JSON.stringify({ email, password })
             });
             const data = await response.json();
+            console.log('Login response:', data); // Debug
             if (!response.ok) {
                 throw new Error(data.error || 'Login failed');
             }
@@ -68,6 +70,7 @@ if (loginForm) {
                 window.location.href = '/blog.html';
             }
         } catch (error) {
+            console.error('Login error:', error.message); // Debug
             loginError.textContent = error.message;
         }
     });
@@ -85,6 +88,7 @@ if (registerForm) {
                 body: JSON.stringify({ email, password })
             });
             const data = await response.json();
+            console.log('Register response:', data); // Debug
             if (!response.ok) {
                 throw new Error(data.error || 'Registration failed');
             }
@@ -92,6 +96,7 @@ if (registerForm) {
             document.getElementById('register-error').textContent = 'Registration successful! Please login.';
             setTimeout(() => { window.location.href = '/login.html'; }, 2000);
         } catch (error) {
+            console.error('Register error:', error.message); // Debug
             document.getElementById('register-error').textContent = error.message;
         }
     });
@@ -124,10 +129,11 @@ document.getElementById('contact-form')?.addEventListener('submit', async (e) =>
             body: JSON.stringify({ name, email, message })
         });
         const data = await response.json();
+        console.log('Contact response:', data); // Debug
         document.getElementById('form-response').innerText = data.message;
     } catch (error) {
+        console.error('Form submission error:', error); // Debug
         document.getElementById('form-response').innerText = 'Error submitting form';
-        console.error('Form submission error:', error);
     }
 });
 
@@ -136,6 +142,7 @@ async function loadProjects() {
     try {
         const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/projects');
         const data = await response.json();
+        console.log('Projects response:', data); // Debug
         if (!response.ok) {
             throw new Error(data.error || 'Failed to load projects');
         }
@@ -195,12 +202,14 @@ if (projectForm) {
                 body: JSON.stringify({ title, type, description, link })
             });
             const data = await response.json();
+            console.log('Add project response:', data); // Debug
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to add project');
             }
             projectForm.reset();
             loadProjects();
         } catch (error) {
+            console.error('Add project error:', error);
             document.getElementById('project-error').textContent = error.message;
         }
     });
@@ -215,11 +224,13 @@ async function deleteProject(id) {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             const data = await response.json();
+            console.log('Delete project response:', data); // Debug
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to delete project');
             }
             loadProjects();
         } catch (error) {
+            console.error('Delete project error:', error);
             document.getElementById('project-error').textContent = error.message;
         }
     }
@@ -232,6 +243,7 @@ async function loadContacts() {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
+        console.log('Contacts response:', data); // Debug
         if (!response.ok) {
             throw new Error(data.error || 'Failed to load contacts');
         }
@@ -265,6 +277,7 @@ async function loadPosts() {
     try {
         const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/posts');
         const data = await response.json();
+        console.log('Posts response:', data); // Debug
         if (!response.ok) {
             throw new Error(data.error || 'Failed to load posts');
         }
@@ -311,12 +324,14 @@ if (postForm) {
                 body: JSON.stringify({ title, content, author })
             });
             const data = await response.json();
+            console.log('Add post response:', data); // Debug
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to add post');
             }
             postForm.reset();
             loadPosts();
         } catch (error) {
+            console.error('Add post error:', error);
             document.getElementById('post-error').textContent = error.message;
         }
     });
