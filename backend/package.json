@@ -1,0 +1,23 @@
+{
+  "name": "ltm-world",
+  "version": "1.0.0",
+  "description": "Live Tunes Media World - Gospel Music Hub with JWT Authentication",
+  "main": "backend/worker.js",
+  "scripts": {
+    "dev": "wrangler dev backend/worker.js",
+    "deploy": "wrangler deploy backend/worker.js",
+    "db:migrate": "wrangler d1 execute ltm-world-db --remote --file backend/migrations.sql",
+    "hash-password": "node scripts/hashPassword.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "jose": "^5.2.4",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.11.0"
+  },
+  "author": "Africancontent807@gmail.com",
+  "license": "MIT",
+  "private": true
+}
