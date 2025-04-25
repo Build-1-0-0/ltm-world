@@ -25,19 +25,22 @@ const registerForm = document.getElementById('register-form');
 if (localStorage.getItem('token')) {
     const token = localStorage.getItem('token');
     const payload = parseJwt(token);
-    console.log('Initial JWT payload:', payload); // Debug
+    console.log('Initial JWT payload on page load:', payload); // Debug
     if (payload && payload.role === 'admin') {
+        console.log('User is admin, showing admin content:', payload.email);
         adminLinks.forEach(link => link.style.display = 'inline');
         if (authSection && adminContent) {
             authSection.style.display = 'none';
             adminContent.style.display = 'block';
         }
+    } else {
+        console.log('User is not admin, hiding admin content:', payload ? payload.email : 'no payload', 'Role:', payload ? payload.role : 'none');
+        if (window.location.pathname === '/admin.html') {
+            console.log('Redirecting non-admin from admin.html to blog.html:', payload ? payload.email : 'no payload', 'Role:', payload ? payload.role : 'none');
+            window.location.href = '/blog.html';
+        }
     }
     logoutLinks.forEach(link => link.style.display = 'inline');
-    if (window.location.pathname === '/admin.html' && (!payload || payload.role !== 'admin')) {
-        console.log('Redirecting non-admin from admin.html to blog.html:', payload ? payload.email : 'no payload', 'Role:', payload ? payload.role : 'none');
-        window.location.href = '/blog.html';
-    }
 }
 
 if (loginForm) {
@@ -82,10 +85,11 @@ if (loginForm) {
 }
 
 if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
+        console.log('Register attempt (client):', {email, passwordLength: password.length });
         try {
             const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/register', {
                 method: 'POST',
@@ -93,15 +97,15 @@ if (registerForm) {
                 body: JSON.stringify({ email, password })
             });
             const data = await response.json();
-            console.log('Register response:', data); // Debug
+            console.log('Register response:', data);
             if (!response.ok) {
-                throw new Error(data.error || 'Registration failed');
+                throw new Error(data.error || 'Register failed');
             }
             document.getElementById('register-error').style.color = 'green';
             document.getElementById('register-error').textContent = 'Registration successful! Please login.';
             setTimeout(() => { window.location.href = '/login.html'; }, 2000);
         } catch (error) {
-            console.error('Register error:', error.message); // Debug
+            console.error('Register error:', error.message);
             document.getElementById('register-error').textContent = error.message;
         }
     });
