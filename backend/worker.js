@@ -66,11 +66,12 @@ export default {
                         status: 401
                     });
                 }
-                const jwt = await new SignJWT({ email, role: user.role })
+                console.log('Generating JWT with role:', user.role);
+                const jwt = await new SignJWT({ email: user.email, role: user.role })
                     .setProtectedHeader({ alg: 'HS256' })
                     .setExpirationTime('1h')
                     .sign(new TextEncoder().encode(env.JWT_SECRET));
-                console.log('JWT generated for:', email);
+                console.log('JWT generated:', { email: user.email, role: user.role });
                 return new Response(JSON.stringify({ token: jwt }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 200
@@ -88,6 +89,7 @@ export default {
         async function verifyToken(token, requiredRole = null) {
             try {
                 const { payload } = await jwtVerify(token, new TextEncoder().encode(env.JWT_SECRET));
+                console.log('JWT verified:', { email: payload.email, role: payload.role });
                 if (requiredRole && payload.role !== requiredRole) {
                     return null;
                 }
@@ -172,9 +174,6 @@ export default {
         // Posts
         if (url.pathname === '/api/posts') {
             if (request.method === 'GET') {
-                try {
-                    const { results } = await env.DB.prepare("SELECT * FROM posts").all();
-                    return new Response(JSON.stringify({ data: projects either fix the formatting or you're going to get an earful from the linter
                 try {
                     const { results } = await env.DB.prepare("SELECT * FROM posts").all();
                     return new Response(JSON.stringify({ data: results }), {
