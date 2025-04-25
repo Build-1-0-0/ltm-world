@@ -1,3 +1,17 @@
+// Decode JWT (simple base64 decode for client-side role check)
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+}
+
 // Authentication
 const adminLinks = document.querySelectorAll('#admin-link');
 const logoutLinks = document.querySelectorAll('#logout-link');
@@ -5,13 +19,22 @@ const authSection = document.getElementById('auth-section');
 const adminContent = document.getElementById('admin-content');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
+const registerForm = document.getElementById('register-form');
 
 if (localStorage.getItem('token')) {
-    adminLinks.forEach(link => link.style.display = 'inline');
+    const token = localStorage.getItem('token');
+    const payload = parseJwt(token);
+    if (payload && payload.role === 'admin') {
+        adminLinks.forEach(link => link.style.display = 'inline');
+    }
     logoutLinks.forEach(link => link.style.display = 'inline');
-    if (authSection && adminContent) {
+    if (authSection && adminContent && payload?.role === 'admin') {
         authSection.style.display = 'none';
         adminContent.style.display = 'block';
+    }
+    // Redirect non-admins from admin.html
+    if (window.location.pathname === '/admin.html' && (!payload || payload.role !== 'admin')) {
+        window.location.href = '/blog.html';
     }
 }
 
@@ -28,17 +51,48 @@ if (loginForm) {
             });
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.error || 'Login failed');
             }
             localStorage.setItem('token', data.token);
-            adminLinks.forEach(link => link.style.display = 'inline');
-            logoutLinks.forEach(link => link.style.display = 'inline');
-            authSection.style.display = 'none';
-            adminContent.style.display = 'block';
-            loadProjects();
-            loadContacts();
+            const payload = parseJwt(data.token);
+            if (payload.role === 'admin') {
+                adminLinks.forEach(link => link.style.display = 'inline');
+                if (authSection && adminContent) {
+                    authSection.style.display = 'none';
+                    adminContent.style.display = 'block';
+                }
+                loadProjects();
+                loadContacts();
+                window.location.href = '/admin.html';
+            } else {
+                window.location.href = '/blog.html';
+            }
         } catch (error) {
             loginError.textContent = error.message;
+        }
+    });
+}
+
+if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        try {
+            const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Registration failed');
+            }
+            document.getElementById('register-error').style.color = 'green';
+            document.getElementById('register-error').textContent = 'Registration successful! Please login.';
+            setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+        } catch (error) {
+            document.getElementById('register-error').textContent = error.message;
         }
     });
 }
@@ -53,7 +107,7 @@ logoutLinks.forEach(link => {
             authSection.style.display = 'block';
             adminContent.style.display = 'none';
         }
-        window.location.href = 'index.html';
+        window.location.href = '/index.html';
     });
 });
 
@@ -69,8 +123,8 @@ document.getElementById('contact-form')?.addEventListener('submit', async (e) =>
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, message })
         });
-        const text = await response.text();
-        document.getElementById('form-response').innerText = text;
+        const data = await response.json();
+        document.getElementById('form-response').innerText = data.message;
     } catch (error) {
         document.getElementById('form-response').innerText = 'Error submitting form';
         console.error('Form submission error:', error);
@@ -81,11 +135,14 @@ document.getElementById('contact-form')?.addEventListener('submit', async (e) =>
 async function loadProjects() {
     try {
         const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/projects');
-        const projects = await response.json();
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load projects');
+        }
         const projectLists = document.querySelectorAll('.project-list');
         projectLists.forEach(list => {
             list.innerHTML = '';
-            projects.forEach(project => {
+            data.data.forEach(project => {
                 const li = document.createElement('li');
                 const link = project.link ? `<a href="${project.link}" target="_blank">${project.title}</a>` : project.title;
                 li.innerHTML = `${link} (${project.type}) - ${project.description}`;
@@ -95,7 +152,7 @@ async function loadProjects() {
         const projectsTable = document.getElementById('projects-list');
         if (projectsTable) {
             projectsTable.innerHTML = '';
-            projects.forEach(project => {
+            data.data.forEach(project => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${project.id}</td>
@@ -137,8 +194,9 @@ if (projectForm) {
                 },
                 body: JSON.stringify({ title, type, description, link })
             });
+            const data = await response.json();
             if (!response.ok) {
-                throw new Error('Failed to add project');
+                throw new Error(data.error || 'Failed to add project');
             }
             projectForm.reset();
             loadProjects();
@@ -156,8 +214,9 @@ async function deleteProject(id) {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
+            const data = await response.json();
             if (!response.ok) {
-                throw new Error('Failed to delete project');
+                throw new Error(data.error || 'Failed to delete project');
             }
             loadProjects();
         } catch (error) {
@@ -172,14 +231,14 @@ async function loadContacts() {
         const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/contacts', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        const data = await response.json();
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            throw new Error(data.error || 'Failed to load contacts');
         }
-        const contacts = await response.json();
         const tbody = document.getElementById('contacts-list');
         if (tbody) {
             tbody.innerHTML = '';
-            contacts.forEach(contact => {
+            data.data.forEach(contact => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${contact.id}</td>
@@ -205,11 +264,14 @@ if (document.getElementById('contacts-list')) {
 async function loadPosts() {
     try {
         const response = await fetch('https://ltm-world.africancontent807.workers.dev/api/posts');
-        const posts = await response.json();
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load posts');
+        }
         const blogPosts = document.getElementById('blog-posts');
         if (blogPosts) {
             blogPosts.innerHTML = '';
-            posts.forEach(post => {
+            data.data.forEach(post => {
                 const div = document.createElement('div');
                 div.className = 'blog-post';
                 div.innerHTML = `
@@ -248,8 +310,9 @@ if (postForm) {
                 },
                 body: JSON.stringify({ title, content, author })
             });
+            const data = await response.json();
             if (!response.ok) {
-                throw new Error('Failed to add post');
+                throw new Error(data.error || 'Failed to add post');
             }
             postForm.reset();
             loadPosts();
