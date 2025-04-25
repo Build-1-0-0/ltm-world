@@ -17,10 +17,10 @@ export default {
         // Register
         if (request.method === 'POST' && url.pathname === '/api/register') {
             try {
-                const { email, password, role = 'user' } = await request.json();
+                const { email, password } = await request.json();
                 const hashedPassword = await hash(password, 10);
                 await env.DB.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
-                    .bind(email, hashedPassword, role)
+                    .bind(email, hashedPassword, 'user')
                     .run();
                 return new Response(JSON.stringify({ message: 'User registered successfully' }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -62,10 +62,13 @@ export default {
             }
         }
 
-        // Verify JWT
-        async function verifyToken(token) {
+        // Verify JWT and Role
+        async function verifyToken(token, requiredRole = null) {
             try {
                 const { payload } = await jwtVerify(token, new TextEncoder().encode(env.JWT_SECRET));
+                if (requiredRole && payload.role !== requiredRole) {
+                    return null;
+                }
                 return payload;
             } catch {
                 return null;
@@ -90,8 +93,9 @@ export default {
             }
             if (request.method === 'POST') {
                 const auth = request.headers.get('Authorization');
-                if (!auth || !(await verifyToken(auth.replace('Bearer ', '')))) {
-                    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                const payload = await verifyToken(auth?.replace('Bearer ', ''), 'admin');
+                if (!payload) {
+                    return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 401
                     });
@@ -117,8 +121,9 @@ export default {
         // Delete project
         if (request.method === 'DELETE' && url.pathname.startsWith('/api/projects/')) {
             const auth = request.headers.get('Authorization');
-            if (!auth || !(await verifyToken(auth.replace('Bearer ', '')))) {
-                return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            const payload = await verifyToken(auth?.replace('Bearer ', ''), 'admin');
+            if (!payload) {
+                return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 401
                 });
@@ -156,8 +161,9 @@ export default {
             }
             if (request.method === 'POST') {
                 const auth = request.headers.get('Authorization');
-                if (!auth || !(await verifyToken(auth.replace('Bearer ', '')))) {
-                    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                const payload = await verifyToken(auth?.replace('Bearer ', ''), 'admin');
+                if (!payload) {
+                    return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
                         headers: { 'Content-Type': 'application/json', ...corsHeaders },
                         status: 401
                     });
@@ -201,8 +207,9 @@ export default {
 
         if (url.pathname === '/api/contacts') {
             const auth = request.headers.get('Authorization');
-            if (!auth || !(await verifyToken(auth.replace('Bearer ', '')))) {
-                return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            const payload = await verifyToken(auth?.replace('Bearer ', ''), 'admin');
+            if (!payload) {
+                return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
                     headers: { 'Content-Type': 'application/json', ...corsHeaders },
                     status: 401
                 });
